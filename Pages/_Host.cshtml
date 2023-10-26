@@ -1,0 +1,24 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Components.Web
+@namespace BlazorServer.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <base href="~/"/>
+    <link rel="icon" type="/image/png" href="/Content/favicon.png"/>
+    <link href="/css/MainLayout.css" rel="stylesheet"/>
+    @* <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered"/> *@
+    <component type="typeof(HeadOutlet)" render-mode="Server"/>
+</head>
+<body>
+    @* <component type="typeof(App)" render-mode="ServerPrerendered"/> *@
+    @* maybe use this *@
+    <component type="typeof(App)" render-mode="Server"/>
+    <script id="LayoutScript" src="/scripts/MainLayout.js"></script>
+    <script id="PageScript"></script>
+    <script src="_framework/blazor.server.js"></script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+﻿body {
+    opacity: 0;
+    user-select: none;
+    overflow-y: scroll;
+}
+@keyframes appear {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+.menu {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-image: linear-gradient(90deg, #2196F3, #E91E63);
+    height: 40px;
+    border-radius: 10px;
+}
+.main {
+    position: absolute;
+    width: 120px;
+    top: 4px;
+    height: 32px;
+    background: white;
+    border-radius: 18px;
+}
+.main p {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    font-weight: bold;
+    font-size: 18px;
+}
+.show {
+    position: absolute;
+    width: 120px;
+    top: 4px;
+    height: 32px;
+    background: white;
+    border-radius: 18px;
+}
+.show p {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    font-weight: bold;
+    font-size: 18px;
+}
+.about {
+    position: absolute;
+    width: 120px;
+    top: 4px;
+    height: 32px;
+    background: white;
+    border-radius: 18px;
+}
+.about p {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    font-weight: bold;
+    font-size: 18px;
+}
+.page {
+    position: absolute;
+    left: 10px;
+    top: 55px;
+    border: 2px solid grey;
+    border-radius: 10px;
+    opacity: 0;
+}

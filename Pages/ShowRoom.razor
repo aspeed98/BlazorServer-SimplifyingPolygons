@@ -1,0 +1,262 @@
+﻿@page "/showroom"
+@inject IJSRuntime JS
+
+<PageTitle>ShowRoom</PageTitle>
+
+<link href="/css/ShowRoom.css" rel="stylesheet"/>
+<div class="settings" id="settings">
+	<div class="set1" id="set1">
+		<div class="mini1" id="mini1"></div>
+		<input class="tr1x" type="range" id="tr1x" min="-300" max="300" value="0" oninput="tr(1)" style="position: absolute; top: 30px; left: 4px; width: 129px; height: 16px;"> <label for="tr1x" style="position: absolute; top: 30px; left: 137px;"> transX </label>
+		<input class="tr1y" type="range" id="tr1y" min="-300" max="300" value="0" oninput="tr(1)" style="position: absolute; top: 52px; left: 4px; width: 129px; height: 16px;"> <label for="tr1y" style="position: absolute; top: 52px; left: 137px;"> transY </label>
+		<input class="tr1z" type="range" id="tr1z" min="-300" max="300" value="0" oninput="tr(1)" style="position: absolute; top: 74px; left: 4px; width: 129px; height: 16px;"> <label for="tr1z" style="position: absolute; top: 74px; left: 137px;"> transZ </label>
+		<input class="rot1x" type="range" id="rot1x" min="-90" max="90" value="0" oninput="tr(1)" style="position: absolute; top: 96px; left: 4px; width: 129px; height: 16px;"> <label for="rot1x" style="position: absolute; top: 96px; left: 137px;"> rotateX </label>
+		<input class="rot1y" type="range" id="rot1y" min="-90" max="90" value="0" oninput="tr(1)" style="position: absolute; top: 118px; left: 4px; width: 129px; height: 16px;"> <label for="rot1y" style="position: absolute; top: 118px; left: 137px;"> rotateY </label>
+		<input class="rot1z" type="range" id="rot1z" min="-90" max="90" value="0" oninput="tr(1)" style="position: absolute; top: 140px; left: 4px; width: 129px; height: 16px;"> <label for="rot1z" style="position: absolute; top: 140px; left: 137px;"> rotateZ </label>
+		<input class="skew1x" type="range" id="skew1x" min="-90" max="90" value="0" oninput="tr(1)" style="position: absolute; top: 162px; left: 4px; width: 129px; height: 16px;"> <label for="skew1x" style="position: absolute; top: 162px; left: 137px;"> skewX </label>
+		<input class="skew1y" type="range" id="skew1y" min="-90" max="90" value="0" oninput="tr(1)" style="position: absolute; top: 184px; left: 4px; width: 129px; height: 16px;"> <label for="skew1y" style="position: absolute; top: 184px; left: 137px;"> skewY </label>
+		<input class="scale1x" type="range" id="scale1x" min="0.3" max="3" step="0.1" value="1" oninput="tr(1)" style="position: absolute; top: 206px; left: 4px; width: 129px; height: 16px;"> <label for="scale1x" style="position: absolute; top: 206px; left: 137px;"> scaleX </label>
+		<input class="scale1y" type="range" id="scale1y" min="0.3" max="3" step="0.1" value="1" oninput="tr(1)" style="position: absolute; top: 228px; left: 4px; width: 129px; height: 16px;"> <label for="scale1y" style="position: absolute; top: 228px; left: 137px;"> scaleY </label>
+		<input class="scale1z" type="range" id="scale1z" min="0.3" max="3" step="0.1" value="1" oninput="tr(1)" style="position: absolute; top: 250px; left: 4px; width: 129px; height: 16px;"> <label for="scale1z" style="position: absolute; top: 250px; left: 137px;"> scaleZ </label>
+		<button class="reset1" id="reset1" onclick="res(1)"> Reset </button>
+		<button class="rnd1" id="rnd1" onclick="rndall()"> Randomise </button>
+	</div>
+	<div class="set2" id="set2">
+		<div class="mini2" id="mini2"></div>
+		<input class="tr2x" type="range" id="tr2x" min="-300" max="300" value="0" oninput="tr(2)" style="position: absolute; top: 30px; left: 4px; width: 129px; height: 16px;"> <label for="tr2x" style="position: absolute; top: 30px; left: 137px;"> transX </label>
+		<input class="tr2y" type="range" id="tr2y" min="-300" max="300" value="0" oninput="tr(2)" style="position: absolute; top: 52px; left: 4px; width: 129px; height: 16px;"> <label for="tr2y" style="position: absolute; top: 52px; left: 137px;"> transY </label>
+		<input class="tr2z" type="range" id="tr2z" min="-300" max="300" value="0" oninput="tr(2)" style="position: absolute; top: 74px; left: 4px; width: 129px; height: 16px;"> <label for="tr2z" style="position: absolute; top: 74px; left: 137px;"> transZ </label>
+		<input class="rot2x" type="range" id="rot2x" min="-90" max="90" value="0" oninput="tr(2)" style="position: absolute; top: 96px; left: 4px; width: 129px; height: 16px;"> <label for="rot2x" style="position: absolute; top: 96px; left: 137px;"> rotateX </label>
+		<input class="rot2y" type="range" id="rot2y" min="-90" max="90" value="0" oninput="tr(2)" style="position: absolute; top: 118px; left: 4px; width: 129px; height: 16px;"> <label for="rot2y" style="position: absolute; top: 118px; left: 137px;"> rotateY </label>
+		<input class="rot2z" type="range" id="rot2z" min="-90" max="90" value="0" oninput="tr(2)" style="position: absolute; top: 140px; left: 4px; width: 129px; height: 16px;"> <label for="rot2z" style="position: absolute; top: 140px; left: 137px;"> rotateZ </label>
+		<input class="skew2x" type="range" id="skew2x" min="-90" max="90" value="0" oninput="tr(2)" style="position: absolute; top: 162px; left: 4px; width: 129px; height: 16px;"> <label for="skew2x" style="position: absolute; top: 162px; left: 137px;"> skewX </label>
+		<input class="skew2y" type="range" id="skew2y" min="-90" max="90" value="0" oninput="tr(2)" style="position: absolute; top: 184px; left: 4px; width: 129px; height: 16px;"> <label for="skew2y" style="position: absolute; top: 184px; left: 137px;"> skewY </label>
+		<input class="scale2x" type="range" id="scale2x" min="0.3" max="3" step="0.1" value="1" oninput="tr(2)" style="position: absolute; top: 206px; left: 4px; width: 129px; height: 16px;"> <label for="scale2x" style="position: absolute; top: 206px; left: 137px;"> scaleX </label>
+		<input class="scale2y" type="range" id="scale2y" min="0.3" max="3" step="0.1" value="1" oninput="tr(2)" style="position: absolute; top: 228px; left: 4px; width: 129px; height: 16px;"> <label for="scale2y" style="position: absolute; top: 228px; left: 137px;"> scaleY </label>
+		<input class="scale2z" type="range" id="scale2z" min="0.3" max="3" step="0.1" value="1" oninput="tr(2)" style="position: absolute; top: 250px; left: 4px; width: 129px; height: 16px;"> <label for="scale2z" style="position: absolute; top: 250px; left: 137px;"> scaleZ </label>
+		<button class="reset2" id="reset2" onclick="res(2)"> Reset </button>
+		<input type="checkbox" id="el23d" checked onchange="tr(2)" style="position: absolute; top: 272px; left: 100px;"> <label for="el23d" style="position: absolute; top: 272px; left: 124px;"> make 3d </label>
+	</div>
+	<div class="set3" id="set3">
+		<div class="mini3" id="mini3"></div>
+		<input class="tr3x" type="range" id="tr3x" min="-300" max="300" value="0" oninput="tr(3)" style="position: absolute; top: 30px; left: 4px; width: 129px; height: 16px;"> <label for="tr3x" style="position: absolute; top: 30px; left: 137px;"> transX </label>
+		<input class="tr3y" type="range" id="tr3y" min="-300" max="300" value="0" oninput="tr(3)" style="position: absolute; top: 52px; left: 4px; width: 129px; height: 16px;"> <label for="tr3y" style="position: absolute; top: 52px; left: 137px;"> transY </label>
+		<input class="tr3z" type="range" id="tr3z" min="-300" max="300" value="0" oninput="tr(3)" style="position: absolute; top: 74px; left: 4px; width: 129px; height: 16px;"> <label for="tr3z" style="position: absolute; top: 74px; left: 137px;"> transZ </label>
+		<input class="rot3x" type="range" id="rot3x" min="-90" max="90" value="0" oninput="tr(3)" style="position: absolute; top: 96px; left: 4px; width: 129px; height: 16px;"> <label for="rot3x" style="position: absolute; top: 96px; left: 137px;"> rotateX </label>
+		<input class="rot3y" type="range" id="rot3y" min="-90" max="90" value="0" oninput="tr(3)" style="position: absolute; top: 118px; left: 4px; width: 129px; height: 16px;"> <label for="rot3y" style="position: absolute; top: 118px; left: 137px;"> rotateY </label>
+		<input class="rot3z" type="range" id="rot3z" min="-90" max="90" value="0" oninput="tr(3)" style="position: absolute; top: 140px; left: 4px; width: 129px; height: 16px;"> <label for="rot3z" style="position: absolute; top: 140px; left: 137px;"> rotateZ </label>
+		<input class="skew3x" type="range" id="skew3x" min="-90" max="90" value="0" oninput="tr(3)" style="position: absolute; top: 162px; left: 4px; width: 129px; height: 16px;"> <label for="skew3x" style="position: absolute; top: 162px; left: 137px;"> skewX </label>
+		<input class="skew3y" type="range" id="skew3y" min="-90" max="90" value="0" oninput="tr(3)" style="position: absolute; top: 184px; left: 4px; width: 129px; height: 16px;"> <label for="skew3y" style="position: absolute; top: 184px; left: 137px;"> skewY </label>
+		<input class="scale3x" type="range" id="scale3x" min="0.3" max="3" step="0.1" value="1" oninput="tr(3)" style="position: absolute; top: 206px; left: 4px; width: 129px; height: 16px;"> <label for="scale3x" style="position: absolute; top: 206px; left: 137px;"> scaleX </label>
+		<input class="scale3y" type="range" id="scale3y" min="0.3" max="3" step="0.1" value="1" oninput="tr(3)" style="position: absolute; top: 228px; left: 4px; width: 129px; height: 16px;"> <label for="scale3y" style="position: absolute; top: 228px; left: 137px;"> scaleY </label>
+		<input class="scale3z" type="range" id="scale3z" min="0.3" max="3" step="0.1" value="1" oninput="tr(3)" style="position: absolute; top: 250px; left: 4px; width: 129px; height: 16px;"> <label for="scale3z" style="position: absolute; top: 250px; left: 137px;"> scaleZ </label>
+		<button class="reset3" id="reset3" onclick="res(3)"> Reset </button>
+		<input type="checkbox" id="el33d" checked onchange="tr(3)" style="position: absolute; top: 272px; left: 100px;"> <label for="el33d" style="position: absolute; top: 272px; left: 124px;"> make 3d </label>
+	</div>
+	<div class="set4" id="set4">
+		<p style="position: absolute; top: 5px; left: 10px; margin: 0px"> <u>Select output:</u> </p>
+		<div class="sel1" id="sel1">
+			<input type="radio" id="plus1" name="select1" value="1" checked style="position: absolute; left: 2px; top: 4px">
+			<label for="plus1" style="position: absolute; left: 35px; top: 3px">plus</label><br>
+			<input type="radio" id="none1" name="select1" value="0" style="position: absolute; left: 2px; top: 23px">
+			<label for="none1" style="position: absolute; left: 33px; top: 22px">none</label><br>
+			<input type="radio" id="minus1" name="select1" value="-1" style="position: absolute; top: 42px; left: 2px">
+			<label for="minus1" style="position: absolute; left: 29px; top: 41px">minus</label><br>
+		</div>
+		<div class="sel2" id="sel2">
+			<input type="radio" id="plus2" name="select2" value="1" style="position: absolute; left: 2px; top: 4px">
+			<label for="plus2" style="position: absolute; left: 35px; top: 3px">plus</label><br>
+			<input type="radio" id="none2" name="select2" value="0" checked style="position: absolute; left: 2px; top: 23px">
+			<label for="none2" style="position: absolute; left: 33px; top: 22px">none</label><br>
+			<input type="radio" id="minus2" name="select2" value="-1" style="position: absolute; top: 42px; left: 2px">
+			<label for="minus2" style="position: absolute; left: 29px; top: 41px">minus</label><br>
+		</div>
+		<div class="sel3" id="sel3">
+			<input type="radio" id="plus3" name="select3" value="1" style="position: absolute; left: 2px; top: 4px">
+			<label for="plus3" style="position: absolute; left: 35px; top: 3px">plus</label><br>
+			<input type="radio" id="none3" name="select3" value="0" style="position: absolute; left: 2px; top: 23px">
+			<label for="none3" style="position: absolute; left: 33px; top: 22px">none</label><br>
+			<input type="radio" id="minus3" name="select3" value="-1" checked style="position: absolute; top: 42px; left: 2px">
+			<label for="minus3" style="position: absolute; left: 29px; top: 41px">minus</label><br>
+		</div>
+		<button class="rnd2" id="rnd2" onclick="rndrad()" style="position: absolute; top: 30px; left: 262px; width: 84px; height: 20px;"> Randomise </button>
+		<button class="resetrad" id="resetrad" onclick="resetrad()" style="position: absolute; top: 52px; left: 262px; width: 84px; height: 20px;"> Reset </button>
+		<button class="calc" id="calc" @onclick="@calc" style="position: absolute; top: 74px; left: 262px; width: 84px; height: 21px;"> Calculate! </button>
+		<img class="gif1" id="gif1" src="/Content/landscape.gif">
+	</div>
+</div>
+<div class="elframe" id="elframe">
+	<div class="el1" id="el1">
+		<div class="el2" id="el2">
+			<div class="el3" id="el3">
+			</div>
+		</div>
+	</div>
+</div>
+<div class="output" id="output">
+	<img class="image" id="image"/>
+</div>
+<div class="history" id="history">
+	<u>History</u>
+	<div class="spread" id="spread">
+	</div>
+</div>
+
+@code {
+	protected override async Task OnInitializedAsync()
+	{
+		await JS.InvokeAsync<object>("loadJs", "/scripts/ShowRoom.js");
+	}
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			Console.WriteLine("first render of Page");
+		Restart:
+			try { await JS.InvokeVoidAsync("showPage"); } catch { Console.WriteLine("failPage"); await Task.Delay(100); goto Restart; }
+		}
+	}
+
+	public async Task calc()
+	{
+		DateTime n1 = DateTime.Now;
+		await JS.InvokeVoidAsync("disablebutton", null);
+		object? obj = await JS.InvokeAsync<object>("calc");
+		string str = obj?.ToString() ?? String.Empty;
+		Console.WriteLine(str);
+		if (str != String.Empty)
+		{
+			Image<Rgba32>? img = calcImage(str);
+			//var taskimg = Task.Factory.StartNew(() => { return calcImage(str); }); Image<Rgba32>? img = taskimg.Result;
+			Console.WriteLine((img == null ? "IMAGE IS NULL" : $"IMAGE:\nwidth: {img.Width}\nheight: {img.Height}"));
+			string base64 = img?.ToBase64String(SixLabors.ImageSharp.Formats.Png.PngFormat.Instance) ?? "null";
+			await JS.InvokeAsync<object>("draw", new object[] { base64, img?.Width ?? 1, img?.Height ?? 1 });
+			await JS.InvokeAsync<object>("addhistory", new object[] { base64, img?.Width ?? 1, img?.Height ?? 1 });
+			//await JS.InvokeVoidAsync("alert", $"{base64}");
+			//string base6sd4 = img.ToBase64String(,);
+
+			//await JS.InvokeAsync<object>("draw", null);
+		}
+		await JS.InvokeVoidAsync("enablebutton", null);
+		DateTime n2 = DateTime.Now;
+		string total = (n2 - n1).TotalMilliseconds.ToString("F0");
+		//await JS.InvokeVoidAsync("alert", $"Calculation took {total} ms!");
+
+		return;
+	}
+	private Image<Rgba32>? calcImage(string str)
+	{
+		try
+		{
+			shapepiece s1 = new shapepiece(parser.arrayIndex(str, 0));
+			shapepiece s2 = new shapepiece(parser.arrayIndex(str, 1));
+			shapepiece s3 = new shapepiece(parser.arrayIndex(str, 2));
+			if (s1.isValid && s2.isValid && s3.isValid)
+			{
+				shape3d result = new shape3d();
+				List<shapepiece> shapes = new List<shapepiece>() { s1, s2, s3 };
+				List<poly3d> plus = new List<poly3d>();
+				List<poly3d> minus = new List<poly3d>();
+				for (int i = 0; i < shapes.Count; i++)
+				{
+					if (shapes[i].add ?? false)
+						//result = result.add(shapes[i].shape);
+						plus.AddRange(shapes[i].shape.allpolys);
+				}
+				for (int i = 0; i < shapes.Count; i++)
+				{
+					if (!shapes[i].add ?? false)
+						//result = result.cut(shapes[i].shape);
+						minus.AddRange(shapes[i].shape.allpolys);
+				}
+				//result = new shape3d(plus).result().cut(minus);
+				result = new shape3d(plus).cut(minus).result();
+				//result = new shape3d(plus).cut(minus);
+				/*
+				int prev = (int)mathgem.calculationSettings.simplificationMethod;
+				mathgem.calculationSettings.simplificationMethod = 1;
+				result = result.result();
+				mathgem.calculationSettings.simplificationMethod = prev;
+				*/
+				return drawer.drawImg(result);
+			}
+			//return new Image<Rgba32>(1, 1);
+			return null;
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+		}
+		//return new Image<Rgba32>(1, 1);
+		return null;
+	}
+	private struct shapepiece
+	{
+		public bool? add { get; set; }
+		private point3d A { get; set; }
+		private point3d B { get; set; }
+		private point3d C { get; set; }
+		private point3d D { get; set; }
+		public bool isValid { get; set; }
+		public shape3d shape { get; set; }
+		public shapepiece(string str)
+		{
+			int add = Convert.ToInt32(parser.arrayIndex(str, 0));
+			switch (add)
+			{
+				case 1: this.add = true; break;
+				case 0: this.add = null; break;
+				case -1: this.add = false; break;
+				default: toNull(); return;
+			}
+			string points = parser.arrayIndex(str, 1);
+
+			string Apoint = parser.arrayIndex(points, 0);
+			double Ax = parser.todouble(parser.parseValue(Apoint, "x"));
+			double Ay = parser.todouble(parser.parseValue(Apoint, "y"));
+			double Az = parser.todouble(parser.parseValue(Apoint, "z"));
+			this.A = new point3d(Ax, Ay, Az); if (A.isNull) { toNull(); return; }
+
+			string Bpoint = parser.arrayIndex(points, 1);
+			double Bx = parser.todouble(parser.parseValue(Bpoint, "x"));
+			double By = parser.todouble(parser.parseValue(Bpoint, "y"));
+			double Bz = parser.todouble(parser.parseValue(Bpoint, "z"));
+			this.B = new point3d(Bx, By, Bz); if (B.isNull) { toNull(); return; }
+
+			string Cpoint = parser.arrayIndex(points, 2);
+			double Cx = parser.todouble(parser.parseValue(Cpoint, "x"));
+			double Cy = parser.todouble(parser.parseValue(Cpoint, "y"));
+			double Cz = parser.todouble(parser.parseValue(Cpoint, "z"));
+			this.C = new point3d(Cx, Cy, Cz); if (C.isNull) { toNull(); return; }
+
+			string Dpoint = parser.arrayIndex(points, 3);
+			double Dx = parser.todouble(parser.parseValue(Dpoint, "x"));
+			double Dy = parser.todouble(parser.parseValue(Dpoint, "y"));
+			double Dz = parser.todouble(parser.parseValue(Dpoint, "z"));
+			this.D = new point3d(Dx, Dy, Dz); if (D.isNull) { toNull(); return; }
+
+			this.shape = new shape3d(new List<point3d>() { A, B, C, D });
+			if (shape.isNull)
+			{
+				toNull(); return;
+			}
+			this.isValid = true;
+		}
+		public string str()
+		{
+			if (isValid)
+				return $"\nadd: {(add == null ? "none" : add.ToString())}\nA: {A.str()}\nB: {B.str()}\nC: {C.str()}\nD: {D.str()}\npolygons: {shape.allpolys.Count}";
+			return "Invalid";
+		}
+		private void toNull()
+		{
+			this.add = null;
+			this.A = new point3d();
+			this.B = new point3d();
+			this.C = new point3d();
+			this.D = new point3d();
+			this.shape = new shape3d();
+			this.isValid = false;
+		}
+	}
+}

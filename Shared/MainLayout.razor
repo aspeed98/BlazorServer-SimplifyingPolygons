@@ -1,0 +1,35 @@
+﻿@inherits LayoutComponentBase
+@inject IJSRuntime JS
+
+<PageTitle>BlazorServer</PageTitle>
+
+<div class="menu" id="menu">
+	<div class="main" id="main" onmouseover="dim('#main');" onmouseout="light('#main');" onclick="location.href='/';">
+		<p>Main</p>
+	</div>
+	<div class="show" id="show" onmouseover="dim('#show');" onmouseout="light('#show');" onclick="location.href='/showroom/';">
+		<p>ShowRoom</p>
+	</div>
+	<div class="about" id="about" onmouseover="dim('#about');" onmouseout="light('#about');" onclick="location.href='/about/';">
+		<p>About</p>
+	</div>
+</div>
+<div class="page" id="page">
+	@Body
+</div>
+
+@code {
+	// protected override async Task OnInitializedAsync()
+	// {
+	// 	await JS.InvokeAsync<object>("loadJs", null);
+	// }
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			Console.WriteLine("first render of Layout");
+			Restart:
+			try { await JS.InvokeVoidAsync("showLayout"); } catch { Console.WriteLine("failLayout"); await Task.Delay(100); goto Restart; }
+		}
+	}
+}

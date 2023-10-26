@@ -1,0 +1,267 @@
+﻿.el1 {
+    background: #8E58C1;
+    height: 400px;
+    width: 400px;
+    margin: 10px;
+    padding: 20px;
+    border: 5px solid #6093D7;
+    position: relative;
+    display: block;
+    top: 65px;
+    left: 65px;
+}
+
+.el2 {
+    background: #D5668F;
+    height: 300px;
+    width: 300px;
+    margin: 5px;
+    padding: 15px;
+    border: 5px solid #EF946A;
+    position: relative;
+    display: block;
+    top: 25px;
+    left: 25px;
+}
+
+.el3 {
+    background: #79C569;
+    height: 200px;
+    width: 200px;
+    margin: 5px;
+    padding: 15px;
+    border: 5px solid #F0D368;
+    position: relative;
+    display: block;
+    top: 25px;
+    left: 25px;
+    text-align: center;
+}
+
+.settings {
+    position: absolute;
+    margin: 0px;
+    height: 430px;
+    width: 600px;
+    background: #9e9e9e20;
+    border: 4px solid #00ff5055;
+    border-radius: 12px;
+}
+
+.elframe {
+    position: absolute;
+    margin: 0px;
+    height: 600px;
+    width: 600px;
+    background: #9e9e9e20;
+    border: 4px solid #00ff5055;
+    border-radius: 12px;
+    z-index: -1;
+}
+
+.output {
+    position: absolute;
+    margin: 0px;
+    height: 600px;
+    width: 600px;
+    background: #9e9e9e20;
+    border: 4px solid #00ff5055;
+    border-radius: 12px;
+}
+
+.history {
+    position: absolute;
+    margin: 0px;
+    height: 156px;
+    width: 600px;
+    background: #9e9e9e20;
+    border: 4px solid #00ff5055;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.spread {
+    border: 2px solid #8E58C1;
+    position: relative;
+    top: 0px;
+    left: 10px;
+    width: 575px;
+    height: 125px;
+    overflow-y: scroll;
+}
+
+.set1 {
+    background: #8E58C150;
+    top: 8px;
+    left: 11px;
+    position: absolute;
+    display: inline-block;
+    width: 190px;
+    height: 300px;
+}
+
+.mini1 {
+    background: #8E58C1;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    width: 180px;
+    height: 22px;
+}
+
+.reset1 {
+    position: absolute;
+    top: 272px;
+    left: 7px;
+    width: 80px;
+    height: 20px;
+}
+
+.rnd1 {
+    position: absolute;
+    top: 272px;
+    left: 93px;
+    width: 90px;
+    height: 20px;
+}
+
+.set2 {
+    background: #D5668F50;
+    top: 8px;
+    left: 205px;
+    position: absolute;
+    display: inline-block;
+    width: 190px;
+    height: 300px;
+}
+
+.mini2 {
+    background: #D5668F;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    width: 180px;
+    height: 22px;
+}
+
+.reset2 {
+    position: absolute;
+    top: 272px;
+    left: 7px;
+    width: 80px;
+    height: 20px;
+}
+
+.set3 {
+    background: #79C56950;
+    top: 8px;
+    left: 399px;
+    position: absolute;
+    display: inline-block;
+    width: 190px;
+    height: 300px;
+}
+
+.mini3 {
+    background: #79C569;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    width: 180px;
+    height: 22px;
+}
+
+.reset3 {
+    position: absolute;
+    top: 272px;
+    left: 7px;
+    width: 80px;
+    height: 20px;
+}
+
+.set4 {
+    background: #6093D740;
+    top: 312px;
+    left: 11px;
+    position: absolute;
+    display: inline-block;
+    width: 578px;
+    height: 110px;
+}
+
+.sel1 {
+    display: inline-block;
+    position: absolute;
+    top: 30px;
+    left: 10px;
+    width: 80px;
+    height: 65px;
+    background: #8E58C150;
+}
+
+.sel2 {
+    display: inline-block;
+    position: absolute;
+    top: 30px;
+    left: 94px;
+    width: 80px;
+    height: 65px;
+    background: #D5668F50;
+}
+
+.sel3 {
+    display: inline-block;
+    position: absolute;
+    top: 30px;
+    left: 178px;
+    width: 80px;
+    height: 65px;
+    background: #79C56950;
+}
+
+.gif1 {
+    border: 2px solid #8E58C1;
+    position: absolute;
+    top: 28px;
+    left: 360px;
+    width: 200px;
+    height: 65px;
+    opacity: 0;
+}
+
+@keyframes fade {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes sature {
+    0% {
+        opacity: 0;
+        filter: saturate(0%);
+    }
+
+    15% {
+        opacity: 1;
+        filter: saturate(100%);
+    }
+
+    50% {
+        opacity: 1;
+        filter: saturate(200%);
+    }
+
+    85% {
+        opacity: 1;
+        filter: saturate(100%);
+    }
+
+    100% {
+        opacity: 0;
+        filter: saturate(0%);
+    }
+}

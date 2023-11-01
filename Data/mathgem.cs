@@ -135,7 +135,8 @@
 	}
 	public static class calculationSettings
 	{
-		public static int simplificationMethod = 0;
+		public static int simplificationMethod = 2;
+		public static bool autoCalculate = true;
 		public static bool multiTask = true;
 	}
 	public struct rect2d
@@ -1459,7 +1460,8 @@
 				return false;
 			if (!this.pointOnSurface(p))
 				return false;
-			double mink = Math.Min(1.0 / Math.Sqrt(128 * this.area), 0.01), maxk = 1.0 - mink, mins = mink * 2.0, maxs = 1.0 - mins;
+			//double mink = Math.Min(1.0 / Math.Sqrt(128 * this.area), 0.01), maxk = 1.0 - mink, mins = mink * 2.0, maxs = 1.0 - mins;
+			double mink = 0.001 / Math.Sqrt(2 * this.area), maxk = 1.0 - mink, mins = mink * 2.0, maxs = 1.0 - mins;
 			//double mink = 1.0 / Math.Sqrt(8 * this.area), maxk = 1.0 - mink, mins = mink * 2.0, maxs = 1.0 - mins;
 			//double mink = 0.001, maxk = 1.0 - mink, mins = mink * 2.0, maxs = 1.0 - mins;
 			for (int i = 0; i < 3; i++)
@@ -1631,7 +1633,7 @@
 		public List<poly3d> summarize(List<poly3d> polys)
 		{
 			for (int i = 0; i < polys.Count; i++)
-				if (polys[i].isNull || polys[i].area < 1)
+				if (polys[i].isNull)
 				{ polys.RemoveAt(i); i--; }
 
 			for (int i = 0; i < polys.Count; i++)
@@ -1645,68 +1647,43 @@
 			List<poly3d> polysnoZ = polys.Select(poly => poly.cloneNoZ()).ToList();
 			List<List<poly3d>> allpolys = new List<List<poly3d>>(polys.Count);
 
-			//if (calculationSettings.simplificationMethod >= 1 || calculationSettings.simplificationMethod == -1) // only for best quality or RAW method
-			if (calculationSettings.simplificationMethod >= 1)
+			List<List<int>> cutters = new List<List<int>>(polys.Count);
+			List<line3d> splitters = new List<line3d>();
+			for (int i = 0; i < polys.Count; i++)
 			{
-				List<line3d> splitters = new List<line3d>();
-				for (int i = 0; i < polys.Count; i++)
-				{
-					splitters.AddRange(polysnoZ[i].lines());
-					for (int j = i + 1; j < polys.Count; j++)
-						if (polysnoZ[i].intersect(polysnoZ[j], true))
-							splitters.Add(new line3d(polys[i], polys[j]).cloneNoZ());
-				}
-				for (int i = 0; i < polys.Count; i++)
-					allpolys.Add(polysnoZ[i].split(splitters, true));
-				for (int i = 0; i < allpolys.Count; i++)
-					for (int j = 0; j < allpolys[i].Count; j++)
-						for (int u = 0; u < allpolys.Count; u++)
-							if (i != u)
-								for (int v = 0; v < allpolys[u].Count; v++)
-									if (allpolys[i][j].intersect(allpolys[u][v], true))
-									{
-										point3d center = allpolys[i][j].center();
-										double thisZ = polys[i].surfacePoint(center).z;
-										double polyZ = polys[u].surfacePoint(center).z;
-										if (thisZ > polyZ || math.same(thisZ, polyZ))
-										{ allpolys[u].RemoveAt(v); v--; }
-									}
+				cutters.Add(new List<int>());
+				splitters.AddRange(polysnoZ[i].lines());
+				for (int j = i + 1; j < polys.Count; j++)
+					if (polysnoZ[i].intersect(polysnoZ[j], true))
+					{
+						cutters[i].Add(j);
+						splitters.Add(new line3d(polys[i], polys[j]).cloneNoZ());
+					}
 			}
-			else
-			{
-				List<List<int>> cutters = new List<List<int>>(polys.Count);
-				List<List<line3d>> splitters = new List<List<line3d>>(polys.Count);
-				for (int i = 0; i < polys.Count; i++)
-				{
-					splitters.Add(new List<line3d>());
-					cutters.Add(new List<int>());
-					for (int j = 0; j < polys.Count; j++)
-						if (i != j)
-							if (polysnoZ[i].intersect(polysnoZ[j], true))
+			for (int i = 1; i < cutters.Count; i++)
+				for (int j = i - 1; j >= 0; j--)
+					if (cutters[j].Contains(i))
+						cutters[i].Add(j);
+
+			for (int i = 0; i < polys.Count; i++)
+				allpolys.Add(polysnoZ[i].split(splitters, true));
+
+			for (int i = 0; i < allpolys.Count; i++)
+				for (int j = 0; j < allpolys[i].Count; j++)
+					for (int t = 0; t < cutters[i].Count; t++)
+					{
+						int u = cutters[i][t];
+						for (int v = 0; v < allpolys[u].Count; v++)
+							if (allpolys[i][j].intersect(allpolys[u][v], true))
 							{
-								cutters[i].Add(j);
-								splitters[i].AddRange(polysnoZ[j].lines());
-								splitters[i].Add(new line3d(polys[i], polys[j]));
+								point3d center = allpolys[i][j].center();
+								double thisZ = polys[i].surfacePoint(center).z;
+								double polyZ = polys[u].surfacePoint(center).z;
+								if (thisZ > polyZ || math.same(thisZ, polyZ))
+								{ allpolys[u].RemoveAt(v); v--; }
 							}
-				}
-				for (int i = 0; i < polys.Count; i++)
-					allpolys.Add(polysnoZ[i].split(splitters[i], true));
-				for (int i = 0; i < allpolys.Count; i++)
-					for (int j = 0; j < allpolys[i].Count; j++)
-						for (int t = 0; t < cutters[i].Count; t++)
-						{
-							int u = cutters[i][t];
-							for (int v = 0; v < allpolys[u].Count; v++)
-								if (allpolys[i][j].intersect(allpolys[u][v], true))
-								{
-									point3d center = allpolys[i][j].center();
-									double thisZ = polys[i].surfacePoint(center).z;
-									double polyZ = polys[u].surfacePoint(center).z;
-									if (thisZ > polyZ || math.same(thisZ, polyZ))
-									{ allpolys[u].RemoveAt(v); v--; }
-								}
-						}
-			}
+					}
+
 			List<List<poly3d>> planes = new List<List<poly3d>>();
 			List<int> eqIndex = new List<int>();
 			List<int> reserved = new List<int>();
@@ -1728,20 +1705,21 @@
 					planes.Add(toadd);
 				}
 			}
-			//Console.WriteLine($"Got {planes.Count} planes");
 			switch (calculationSettings.simplificationMethod)
 			{
-				case -1:
-					break;
 				case 0:
 					for (int i = 0; i < planes.Count; i++)
-						planes[i] = simplifyRandom(planes[i]);
+						for (int j = 0; j < planes[i].Count; j++)
+							if (planes[i][j].isNull)
+							{ planes[i].RemoveAt(j); j--; }
 					break;
 				case 1:
 					for (int i = 0; i < planes.Count; i++)
-						planes[i] = simplify(planes[i]);
+						planes[i] = simplifyRandom(planes[i]);
 					break;
 				case 2:
+					for (int i = 0; i < planes.Count; i++)
+						planes[i] = simplifyRandom(planes[i]);
 					for (int i = 0; i < planes.Count; i++)
 						planes[i] = simplify(planes[i]);
 					for (int i = 0; i < planes.Count; i++)
@@ -1755,14 +1733,15 @@
 
 			for (int i = 0; i < planes.Count; i++)
 			{
-				List<point3d> ps = polys[eqIndex[i]].surfacePoints(planes[i].Select(zxc => new List<point3d>() { zxc.A, zxc.B, zxc.C }).SelectMany(zxc => zxc).ToList());
+				List<point3d> ps = polys[eqIndex[i]].surfacePoints(planes[i].SelectMany(poly => new List<point3d>() { poly.A, poly.B, poly.C }).ToList());
 				for (int j = 0; j < planes[i].Count; j++)
 				{
 					int c = j * 3;
 					planes[i][j] = new poly3d(ps[c], ps[c + 1], ps[c + 2]);
 				}
 			}
-			return planes.SelectMany(zxc => zxc).ToList();
+			return planes.SelectMany(zxc => zxc.Where(poly => !poly.isNull)).ToList();
+			//return planes.SelectMany(zxc => zxc).ToList();
 		}
 		public List<poly3d> add(List<poly3d> additions)
 		{
@@ -1826,31 +1805,32 @@
 
 			switch (calculationSettings.simplificationMethod)
 			{
-				case -1:
-					break;
 				case 0:
-					allpolys = simplifyRandom(allpolys);
+					for (int i = 0; i < allpolys.Count; i++)
+						if (allpolys[i].isNull)
+						{ allpolys.RemoveAt(i); i--; }
 					break;
 				case 1:
-					//allpolys = simplifyRandom(allpolys);
-					allpolys = simplify(allpolys);
+					allpolys = simplifyRandom(allpolys);
 					break;
 				case 2:
-					//allpolys = simplifyRandom(allpolys);
+					allpolys = simplifyRandom(allpolys);
 					allpolys = simplify(allpolys);
+					allpolys = simplifyRandom(allpolys);
 					break;
 				default:
 					allpolys = simplifyRandom(allpolys);
 					break;
 			}
 
-			List<point3d> ps = this.surfacePoints(allpolys.Select(zxc => new List<point3d>() { zxc.A, zxc.B, zxc.C }).SelectMany(zxc => zxc).ToList());
+			List<point3d> ps = this.surfacePoints(allpolys.SelectMany(poly => new List<point3d>() { poly.A, poly.B, poly.C }).ToList());
 			for (int i = 0; i < allpolys.Count; i++)
 			{
 				int c = i * 3;
 				allpolys[i] = new poly3d(ps[c], ps[c + 1], ps[c + 2]);
 			}
-			return allpolys;
+			return allpolys.Where(poly => !poly.isNull).ToList();
+			//return allpolys;
 		}
 		public List<poly3d> cut(poly3d sample, List<poly3d> cutters)
 		{
@@ -1905,11 +1885,29 @@
 			if (!z)
 				return this.cloneNoZ().split(line.cloneNoZ(), true);
 
-			line = line.endless();
+			if (!line.sameSurface(this))
+			{
+				List<point3d> ps = this.surfacePoints(this.cloneNoZ().split(line.cloneNoZ(), true).Where(poly => !poly.isNull).SelectMany(poly => new List<point3d>() { poly.A, poly.B, poly.C }).ToList());
+				if (ps.Count == 0)
+					return new List<poly3d>();
+				List<poly3d> ret = new List<poly3d>(ps.Count / 3);
+				for (int i = 0; i < ps.Count / 3; i++)
+				{
+					int c = i * 3;
+					ret.Add(new poly3d(ps[c], ps[c + 1], ps[c + 2]));
+				}
+				return ret;
+			}
+
 			if (!this.rect3d.intersect(line.rect3d))
 				return new List<poly3d>() { this };
 
 			List<line3d> lines = this.lines();
+			if (!line.crosses(lines, false, true) && !this.pointInside(line.A, true) && !this.pointInside(line.B, true) && !this.pointInside(line.center(), true))
+				return new List<poly3d>() { this };
+
+			line = line.endless();
+
 			if (line.sameStraight(lines, true))
 				return new List<poly3d>() { this };
 			List<point3d> crosses = new List<point3d>(3);
@@ -1925,32 +1923,35 @@
 			}
 			if (crosses.Count != 2)
 				return new List<poly3d>() { this };
-			if (indexes.Contains(0) && indexes.Contains(1))
+			bool c0 = indexes.Contains(0);
+			bool c1 = indexes.Contains(1);
+			bool c2 = indexes.Contains(2);
+			if (c0 && c1)
 			{
 				return new List<poly3d>()
 				{
 					new poly3d(crosses[0], this.B, crosses[1]),
 					new poly3d(this.A, crosses[0], this.C),
 					new poly3d(crosses[0], crosses[1], this.C),
-				};
+				}.Where(poly => !poly.isNull).ToList();
 			}
-			if (indexes.Contains(0) && indexes.Contains(2))
+			if (c0 && c2)
 			{
 				return new List<poly3d>()
 				{
 					new poly3d(this.A, crosses[0], crosses[1]),
 					new poly3d(crosses[0], this.B, this.C),
 					new poly3d(crosses[0], this.C, crosses[1]),
-				};
+				}.Where(poly => !poly.isNull).ToList();
 			}
-			if (indexes.Contains(1) && indexes.Contains(2))
+			if (c1 && c2)
 			{
 				return new List<poly3d>()
 				{
 					new poly3d(crosses[1], crosses[0], this.C),
 					new poly3d(this.A, this.B, crosses[0]),
 					new poly3d(this.A, crosses[0], crosses[1]),
-				};
+				}.Where(poly => !poly.isNull).ToList();
 			}
 			return new List<poly3d>() { this };
 		}
@@ -2037,6 +2038,7 @@
 						points.RemoveAt(i);
 						i = Math.Max(i - 2, -1);
 						//i = -1;
+						//i--;
 						continue;
 					}
 					if (angle < 180.0)
@@ -2044,27 +2046,37 @@
 						line3d newline = new line3d(points[l], points[r]);
 						bool add = true;
 
-						//for (int u = i + 2; u < lines.Count; u++)
-						//	if (newline.crosses(lines[u], false, true))
-						//	{ add = false; break; }
-
-						//for (int u = 0; u < i - 2; u++)
-						//	if (newline.crosses(lines[u], false, true))
-						//	{ add = false; break; }
-
-						if (newline.overlay(lines, true))
-							add = false;
+						for (int j = 0; j < points.Count; j++)
+							if (j != l && j != r)
+								if (newline.pointInside(points[j], true) && newline.A != points[j] && newline.B != points[j])
+								{ add = false; break; }
 
 						if (add)
 						{
 							poly3d poly = new poly3d(points[l], points[i], points[r]);
-							for (int j = 0; j < points.Count; j++)
-								if (j != l && j != i && j != r)
-									if (poly.pointInside(points[j], true))
-									{ add = false; break; }
-							if (add)
+							if (poly.isNull)
 							{
-								if (!poly.isNull)
+								if (i > l)
+								{
+									lines.RemoveAt(i); lines.RemoveAt(l);
+									lines.Insert(l, newline);
+								}
+								else
+								{
+									lines.RemoveAt(l); lines.RemoveAt(i);
+									lines.Insert(i, newline);
+								}
+								points.RemoveAt(i);
+								i = Math.Max(i - 2, -1);
+								continue;
+							}
+							else
+							{
+								for (int j = 0; j < points.Count; j++)
+									if (j != l && j != i && j != r)
+										if (poly.pointInside(points[j], true))
+										{ add = false; break; }
+								if (add)
 								{
 									polys.Add(poly);
 									if (i > l)
@@ -2080,6 +2092,7 @@
 									points.RemoveAt(i);
 									i = Math.Max(i - 2, -1);
 									//i = -1;
+									//i--;
 								}
 							}
 						}
@@ -2190,7 +2203,7 @@
 		public List<poly3d> simplify(List<poly3d> polys)
 		{
 			for (int i = 0; i < polys.Count; i++)
-				if (polys[i].isNull || polys[i].area < 0.1)
+				if (polys[i].isNull)
 				{ polys.RemoveAt(i); i--; }
 
 			List<List<poly3d>> figures = new List<List<poly3d>>();
@@ -2214,34 +2227,117 @@
 				}
 				figures.Add(added);
 			}
+			//Console.WriteLine($"figures: {figures.Count}");
+			//for (int i = 0; i < figures.Count; i++)
+			//{
+			//	Console.WriteLine($"{i,2} : polys: {figures[i].Count}");
+			//}
 			List<List<line3d>> figurelines = new List<List<line3d>>(figures.Count);
 			for (int i = 0; i < figures.Count; i++)
 			{
-				List<line3d> currentlines = new List<line3d>(figures[i].Count * 3);
+				figurelines.Add(new List<line3d>(figures[i].Count * 3));
 				for (int j = 0; j < figures[i].Count; j++)
-				{
-					currentlines.AddRange(figures[i][j].lines());
-				}
-				for (int j = 0; j < currentlines.Count; j++)
+					figurelines[i].AddRange(figures[i][j].lines());
+			}
+
+			for (int i = 0; i < figurelines.Count; i++)
+			{
+				for (int j = 0; j < figurelines[i].Count; j++)
 				{
 					List<int> indexes = new List<int>() { j };
-					for (int k = j + 1; k < currentlines.Count; k++)
-					{
-						//if (currentlines[j] == currentlines[k])
-						if (currentlines[j].overlay(currentlines[k]))
+					for (int k = j + 1; k < figurelines[i].Count; k++)
+						if (figurelines[i][j] == figurelines[i][k])
 							indexes.Add(k);
-					}
 					if (indexes.Count > 1)
 					{
 						indexes.Reverse();
-						for (int k = 0; k < indexes.Count; k++)
+						for (int c = 0; c < indexes.Count; c++)
 						{
-							currentlines.RemoveAt(indexes[k]);
+							figurelines[i].RemoveAt(indexes[c]);
 						}
 						j--;
 					}
 				}
-				figurelines.Add(currentlines);
+			}
+
+			for (int i = 0; i < figurelines.Count; i++)
+			{
+				List<line3d> unique = new List<line3d>();
+				for (int z = 0; z < figurelines[i].Count; z++)
+				{
+					for (int x = z + 1; x < figurelines[i].Count; x++)
+						if (figurelines[i][z].overlay(figurelines[i][x], true))
+						{
+							List<point3d> ps = new List<point3d>()
+							{
+								figurelines[i][z].A,
+								figurelines[i][z].B,
+								figurelines[i][x].A,
+								figurelines[i][x].B
+							};
+							for (int c = 0; c < ps.Count; c++)
+							{
+								for (int k = c + 1; k < ps.Count; k++)
+									if (ps[c] == ps[k])
+									{ ps.RemoveAt(k); k--; }
+							}
+							List<List<Tuple<int, int>>> indexes = new List<List<Tuple<int, int>>>(ps.Count);
+							List<List<double>> lens = new List<List<double>>(ps.Count);
+							for (int c = 0; c < ps.Count; c++)
+							{
+								indexes.Add(new List<Tuple<int, int>>(ps.Count - 1));
+								lens.Add(new List<double>(ps.Count - 1));
+								for (int k = 0; k < ps.Count; k++)
+									if (c != k)
+									{
+										indexes[c].Add(new Tuple<int, int>(c, k));
+										lens[c].Add((ps[c] - ps[k]).length);
+									}
+							}
+							List<line3d> lines = new List<line3d>();
+							for (int c = 0; c < ps.Count; c++)
+							{
+								int id = lens[c].IndexOf(lens[c].Min());
+								lines.Add(new line3d(ps[indexes[c][id].Item1], ps[indexes[c][id].Item2]));
+							}
+							for (int c = 0; c < lines.Count; c++)
+							{
+								for (int k = c + 1; k < lines.Count; k++)
+									if (lines[c] == lines[k])
+									{ lines.RemoveAt(k); k--; }
+							}
+							for (int c = 0; c < lines.Count; c++)
+							{
+								if (figurelines[i][z].overlay(lines[c], true) && figurelines[i][x].overlay(lines[c], true))
+								{ lines.RemoveAt(c); c--; }
+							}
+							figurelines[i].RemoveAt(x);
+							figurelines[i].RemoveAt(z);
+							figurelines[i].InsertRange(z, lines);
+							z = -1;
+							break;
+						}
+				}
+			}
+
+			for (int i = 0; i < figurelines.Count; i++)
+			{
+				for (int j = 0; j < figurelines[i].Count; j++)
+				{
+					List<int> indexes = new List<int>() { j };
+					for (int k = j + 1; k < figurelines[i].Count; k++)
+						if (figurelines[i][j] == figurelines[i][k])
+							indexes.Add(k);
+					if (indexes.Count > 1)
+					{
+						indexes.Reverse();
+						for (int c = 0; c < indexes.Count; c++)
+						{
+							figurelines[i].RemoveAt(indexes[c]);
+						}
+						j--;
+					}
+				}
 			}
 
 			for (int i = 0; i < figurelines.Count; i++)
@@ -2283,7 +2379,11 @@
 					}
 				}
 			}
-
+			//Console.WriteLine($"figurelines: {figurelines.Count}");
+			//for (int i = 0; i < figurelines.Count; i++)
+			//{
+			//	Console.WriteLine($"{i,2} : lines: {figurelines[i].Count}");
+			//}
 			List<poly3d> ret = new List<poly3d>();
 			for (int i = 0; i < figures.Count; i++)
 			{
@@ -2301,8 +2401,6 @@
 					{
 						List<int> ids = new List<int>();
 						for (int k = 0; k < leftlines.Count; k++)
-							//if (!newlines[j].collinear(leftlines[k]) && (leftlines[k].A == newlines[j].B || leftlines[k].B == newlines[j].B))
-							//if ((leftlines[k].A == newlines[j].B || leftlines[k].B == newlines[j].B))
 							if ((leftlines[k].A == newlines[^1].B || leftlines[k].B == newlines[^1].B))
 								ids.Add(k);
 
@@ -2407,6 +2505,7 @@
 					}
 					if (newlines.Count > 2)
 					{
+						//Console.WriteLine($"loop FOUND");
 						loops.Add(newlines);
 						loopPoints.Add(newlines.Select(zxc => zxc.A).ToList());
 					}
@@ -2439,11 +2538,13 @@
 										if (k != j)
 											for (int w = 0; w < 3; w++)
 												if (w != v)
-													if (all[i][k].continues(all[u][w], true))
-														//if (all[i][k].sameStraight(all[u][w], true))
+													//if (all[i][k].continues(all[u][w], true))
+													//if (all[i][k].shareEdgePoint(all[u][w], true) && all[i][k].sameStraight(all[u][w], true) && all[i][k] != all[u][w])
+													//if (all[i][k].sameStraight(all[u][w], true) && all[i][k] != all[u][w])
+													if (all[i][k].sameStraight(all[u][w], true))
 														if (combine(i, j, k, u, v, w))
 															goto Start;
-			return polys;
+			return polys.Where(poly => !poly.isNull).ToList();
 			bool combine(int i, int j, int k, int u, int v, int w)
 			{
 				List<int> ids1 = new List<int>() { 0, 1, 2 };
@@ -2453,45 +2554,26 @@
 				List<line3d> lines = new List<line3d>() { all[i][ids1[0]], all[u][ids2[0]] };
 				List<point3d> ps = new List<point3d>()
 				{
-					lines[0].A,
-					lines[0].B,
-					lines[1].A,
-					lines[1].B
+					all[i][k].A,
+					all[i][k].B,
+					all[u][w].A,
+					all[u][w].B
 				};
-				//ps = ps.Distinct().ToList();
-				for (int z = 0; z < ps.Count; z++)
-				{
+				bool done = false;
+				for (int z = 0; z < ps.Count && !done; z++)
 					for (int x = z + 1; x < ps.Count; x++)
 						if (ps[z] == ps[x])
-						{ ps.RemoveAt(x); x--; }
-				}
-				List<double> lens = new List<double>();
-				List<Tuple<int, int>> ids = new List<Tuple<int, int>>();
-				for (int z = 0; z < ps.Count; z++)
-					for (int x = 0; x < ps.Count; x++)
-						if (z != x)
-						{
-							lens.Add((ps[z] - ps[x]).length);
-							ids.Add(new Tuple<int, int>(z, x));
-						}
-				int id = lens.IndexOf(lens.Max());
-				lines.Add(new line3d(ps[ids[id].Item1], ps[ids[id].Item2]));
-				ps = new List<point3d>()
-				{
-					lines[0].A,
-					lines[0].B,
-					lines[1].A,
-					lines[1].B,
-					lines[2].A,
-					lines[2].B
-				};
-				//ps = ps.Distinct().ToList();
-				for (int z = 0; z < ps.Count; z++)
-				{
-					for (int x = z + 1; x < ps.Count; x++)
-						if (ps[z] == ps[x])
-						{ ps.RemoveAt(x); x--; }
-				}
+						{ ps.RemoveAt(x); ps.RemoveAt(z); done = true; break; }
+
+				if (!lines[0].A.inlist(ps))
+					ps.Add(lines[0].A);
+				else if (!lines[0].B.inlist(ps))
+					ps.Add(lines[0].B);
+				else if (!lines[1].A.inlist(ps))
+					ps.Add(lines[1].A);
+				else if (!lines[1].B.inlist(ps))
+					ps.Add(lines[1].B);
+
 				if (ps.Count == 3)
 				{
 					poly3d modified = new poly3d(ps[0], ps[1], ps[2]);
@@ -2504,7 +2586,7 @@
 						return true;
 					}
 				}
-				Console.WriteLine($"SimplifyStupid method combine caught strange result! points: {ps.Count}");
+				Console.WriteLine($"SimplifyRandom method combine caught strange result! points: {ps.Count}");
 				return false;
 			}
 		}
@@ -2638,8 +2720,11 @@
 	*/
 	public struct shape3d
 	{
-		public List<poly3d> allpolys { get; set; }
-		public Rectangle rect { get; set; }
+		private List<poly3d> pluspolys { get; set; }
+		private List<poly3d> minuspolys { get; set; }
+		private bool simplified { get; set; }
+		private bool calculated { get; set; }
+		private Rectangle bounds { get; set; }
 		private List<Point> allpoints { get; set; }
 		public bool isNull { get; set; }
 		public shape3d() { toNull(); }
@@ -2650,45 +2735,133 @@
 				toNull();
 				return;
 			}
-			this.allpolys = new List<poly3d>() { poly };
+			this.pluspolys = new List<poly3d>() { poly };
+			this.minuspolys = new List<poly3d>();
+			this.simplified = true;
+			this.calculated = true;
 			setBounds();
 			this.allpoints = new List<Point>();
 			this.isNull = false;
 		}
-		public shape3d(List<poly3d> polys)
+		public shape3d(List<poly3d> pluspolys)
 		{
-			if (polys.Count == 0)
+			if (pluspolys.Count == 0)
 			{
 				toNull();
 				return;
 			}
-			this.allpolys = polys;
+			this.pluspolys = pluspolys;
+			this.minuspolys = new List<poly3d>();
+			this.simplified = false;
+			this.calculated = true;
 			setBounds();
+			this.allpoints = new List<Point>();
+			this.isNull = false;
+		}
+		private shape3d(List<poly3d> pluspolys, bool simplified)
+		{
+			if (pluspolys.Count == 0)
+			{
+				toNull();
+				return;
+			}
+			this.pluspolys = pluspolys;
+			this.minuspolys = new List<poly3d>();
+			this.simplified = simplified;
+			this.calculated = true;
+			setBounds();
+			this.allpoints = new List<Point>();
+			this.isNull = false;
+		}
+		public shape3d(List<poly3d> pluspolys, List<poly3d> minuspolys)
+		{
+			if (pluspolys.Count == 0)
+			{
+				toNull();
+				return;
+			}
+			if (minuspolys.Count == 0)
+			{
+				this = new shape3d(pluspolys);
+				return;
+			}
+			this.pluspolys = pluspolys;
+			this.minuspolys = minuspolys;
+			this.simplified = false;
+			this.calculated = false;
 			this.allpoints = new List<Point>();
 			this.isNull = false;
 		}
 		public shape3d(List<point3d> points)
 		{
+			//List<poly3d> polys = new poly3d().simplifyRandom(new poly3d().polysFromPoints(points));
 			List<poly3d> polys = new poly3d().polysFromPoints(points);
 			if (polys.Count == 0)
 			{
 				toNull();
 				return;
 			}
-			this.allpolys = polys;
+			this.pluspolys = polys;
+			this.minuspolys = new List<poly3d>();
+			this.simplified = true;
+			this.calculated = true;
 			setBounds();
 			this.allpoints = new List<Point>();
 			this.isNull = false;
 		}
+		public List<poly3d> polys()
+		{
+			if (this.isNull)
+				return new List<poly3d>();
+
+			calculate();
+			simplify();
+
+			return new List<poly3d>(this.pluspolys);
+		}
+		public void calculate()
+		{
+			if (this.calculated || this.isNull)
+				return;
+
+			//List<poly3d> plus = new List<poly3d>(this.pluspolys);
+			//List<poly3d> minus = new List<poly3d>(this.minuspolys);
+			List<poly3d> plus = new poly3d().summarize(this.pluspolys);
+			List<poly3d> minus = new poly3d().summarize(this.minuspolys);
+
+			List<poly3d> result = new List<poly3d>();
+			for (int i = 0; i < plus.Count; i++)
+				result.AddRange(plus[i].cut(minus.ToList()));
+
+			this.pluspolys = result;
+			this.minuspolys = new List<poly3d>();
+			this.simplified = false;
+			this.calculated = true;
+			setBounds();
+		}
+		public void simplify()
+		{
+			if (!this.calculated)
+				calculate();
+			if (this.simplified || this.isNull)
+				return;
+
+			this.pluspolys = new poly3d().summarize(this.pluspolys);
+			this.simplified = true;
+		}
 		public shape3d result()
 		{
-			return new shape3d(new poly3d().summarize(new List<poly3d>(this.allpolys)));
+			calculate();
+			simplify();
+			return this;
 		}
 		public List<Point> allPoints()
 		{
 			if (this.isNull) return new List<Point>();
+			calculate();
+			simplify();
 			if (this.allpoints.Count != 0) return new List<Point>(this.allpoints);
-			List<Point> points = this.allpolys.SelectMany(zxc => zxc.allPoints()).ToList();
+			List<Point> points = this.pluspolys.SelectMany(zxc => zxc.allPoints()).ToList();
 			this.allpoints = points;
 			return new List<Point>(this.allpoints);
 		}
@@ -2700,70 +2873,105 @@
 		}
 		private void setBounds()
 		{
-			int left = this.allpolys[0].rect.Left;
-			int right = this.allpolys[0].rect.Right;
-			int top = this.allpolys[0].rect.Top;
-			int bottom = this.allpolys[0].rect.Bottom;
-			for (int i = 1; i < this.allpolys.Count; i++)
+			if (this.isNull || this.pluspolys.Count == 0)
+			{ this.bounds = new Rectangle(); return; }
+			int left = this.pluspolys[0].rect.Left;
+			int right = this.pluspolys[0].rect.Right;
+			int top = this.pluspolys[0].rect.Top;
+			int bottom = this.pluspolys[0].rect.Bottom;
+			for (int i = 1; i < this.pluspolys.Count; i++)
 			{
-				left = Math.Min(left, this.allpolys[i].rect.Left);
-				right = Math.Max(right, this.allpolys[i].rect.Right);
-				top = Math.Min(top, this.allpolys[i].rect.Top);
-				bottom = Math.Max(bottom, this.allpolys[i].rect.Bottom);
+				left = Math.Min(left, this.pluspolys[i].rect.Left);
+				right = Math.Max(right, this.pluspolys[i].rect.Right);
+				top = Math.Min(top, this.pluspolys[i].rect.Top);
+				bottom = Math.Max(bottom, this.pluspolys[i].rect.Bottom);
 			}
 			if (left < right && top < bottom)
-				this.rect = new Rectangle(left, top, right - left, bottom - top);
+				this.bounds = new Rectangle(left, top, right - left, bottom - top);
 			else
-				this.rect = new Rectangle();
+				this.bounds = new Rectangle();
 		}
-		public shape3d add(List<shape3d> shapes)
+		public Rectangle rect()
 		{
-			return new shape3d();
+			calculate();
+			simplify();
+			return this.bounds;
 		}
-		public shape3d add(shape3d shape)
+		public shape3d add(List<shape3d> shapes) { return add(shapes, calculationSettings.autoCalculate); }
+		public shape3d add(List<shape3d> shapes, bool calc)
 		{
-			//return new shape3d(new poly3d().summarize(this.allpolys.Concat(shape.result().allpolys).ToList()));
-			List<poly3d> plus1 = new List<poly3d>(this.allpolys);
-			List<poly3d> plus2 = new List<poly3d>(shape.allpolys);
-			List<poly3d> ret = new poly3d().summarize(plus1.Concat(plus2).ToList());
-			return new shape3d(ret);
+			shapes.ForEach(shape => shape.result());
+			if (calc)
+				return new shape3d(this.polys().Concat(shapes.SelectMany(shape => shape.polys())).ToList());
+			else
+				return new shape3d(this.pluspolys.Concat(shapes.SelectMany(shape => shape.polys())).ToList(), this.minuspolys.ToList());
 		}
-		public shape3d add(List<poly3d> polys)
+		public shape3d add(shape3d shape) { return add(shape, calculationSettings.autoCalculate); }
+		public shape3d add(shape3d shape, bool calc)
 		{
-			return add(new shape3d(polys));
+			shape = shape.result();
+			if (calc)
+				return new shape3d(this.polys().Concat(shape.polys()).ToList());
+			else
+				return new shape3d(this.pluspolys.Concat(shape.polys()).ToList(), this.minuspolys.ToList());
 		}
-		public shape3d add(poly3d poly)
+		public shape3d add(List<poly3d> polys) { return add(polys, calculationSettings.autoCalculate); }
+		public shape3d add(List<poly3d> polys, bool calc)
 		{
-			return new shape3d();
+			if (calc)
+				return new shape3d(this.polys().Concat(polys).ToList());
+			else
+				return new shape3d(this.pluspolys.Concat(polys).ToList(), this.minuspolys.ToList());
 		}
-		public shape3d cut(List<shape3d> shapes)
+		public shape3d add(poly3d poly) { return add(poly, calculationSettings.autoCalculate); }
+		public shape3d add(poly3d poly, bool calc)
 		{
-			return new shape3d();
+			if (calc)
+				return new shape3d(this.polys().Append(poly).ToList());
+			else
+				return new shape3d(this.pluspolys.Append(poly).ToList(), this.minuspolys.ToList());
 		}
-		public shape3d cut(shape3d shape)
+		public shape3d cut(List<shape3d> shapes) { return cut(shapes, calculationSettings.autoCalculate); }
+		public shape3d cut(List<shape3d> shapes, bool calc)
 		{
-			//return new shape3d(new List<poly3d>(this.allpolys).SelectMany(zxc => zxc.cut(new List<poly3d>(shape.allpolys))).ToList());
-			List<poly3d> plus = new List<poly3d>(this.allpolys);
-			List<poly3d> minus = new List<poly3d>(shape.allpolys);
-			List<poly3d> ret = new List<poly3d>();
-			for (int i = 0; i < plus.Count; i++)
-			{
-				ret.AddRange(plus[i].cut(minus.ToList()));
-			}
-			return new shape3d(ret);
+			shapes.ForEach(shape => shape.result());
+			if (calc)
+				return new shape3d(this.polys(), shapes.SelectMany(shape => shape.polys()).ToList());
+			else
+				return new shape3d(this.pluspolys.ToList(), this.minuspolys.Concat(shapes.SelectMany(shape => shape.polys())).ToList());
 		}
-		public shape3d cut(List<poly3d> polys)
+		public shape3d cut(shape3d shape) { return cut(shape, calculationSettings.autoCalculate); }
+		public shape3d cut(shape3d shape, bool calc)
 		{
-			return cut(new shape3d(polys));
+			shape = shape.result();
+			if (calc)
+				return new shape3d(this.polys(), shape.polys());
+			else
+				return new shape3d(this.pluspolys.ToList(), this.minuspolys.Concat(shape.polys()).ToList());
 		}
-		public shape3d cut(poly3d poly)
+		public shape3d cut(List<poly3d> polys) { return cut(polys, calculationSettings.autoCalculate); }
+		public shape3d cut(List<poly3d> polys, bool calc)
 		{
-			return new shape3d();
+			if (calc)
+				return new shape3d(this.polys(), polys);
+			else
+				return new shape3d(this.pluspolys.ToList(), this.minuspolys.Concat(polys).ToList());
+		}
+		public shape3d cut(poly3d poly) { return cut(poly, calculationSettings.autoCalculate); }
+		public shape3d cut(poly3d poly, bool calc)
+		{
+			if (calc)
+				return new shape3d(this.polys(), new List<poly3d>() { poly });
+			else
+				return new shape3d(this.pluspolys.ToList(), this.minuspolys.Append(poly).ToList());
 		}
 		private void toNull()
 		{
-			this.allpolys = new List<poly3d>();
-			this.rect = new Rectangle();
+			this.pluspolys = new List<poly3d>();
+			this.minuspolys = new List<poly3d>();
+			this.simplified = true;
+			this.calculated = true;
+			this.bounds = new Rectangle();
 			this.allpoints = new List<Point>();
 			this.isNull = true;
 		}

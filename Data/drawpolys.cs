@@ -1,4 +1,5 @@
 ﻿using mathgem;
+using System.Xml.Linq;
 
 namespace drawpolys
 {
@@ -9,12 +10,12 @@ namespace drawpolys
 		public static Image<Rgba32> drawImg(shape3d shape)
 		{
 			if (shape.isNull) return new Image<Rgba32>(1, 1);
-			if (shape.allpolys.Count == 0) return new Image<Rgba32>(1, 1);
-			Rectangle rect = shape.rect;
+			if (shape.polys().Count == 0) return new Image<Rgba32>(1, 1);
+			Rectangle rect = shape.rect();
 			if (rect.IsEmpty) return new Image<Rgba32>(1, 1);
 			var img = new Image<Rgba32>(rect.Width + 2, rect.Height + 2);
-			List<poly3d> polys = shape.allpolys;
-			Console.WriteLine($"\nTotal polygons: {shape.allpolys.Count}");
+			List<poly3d> polys = shape.polys();
+			Console.WriteLine($"\nTotal polygons: {shape.polys().Count}");
 			if (calculationSettings.multiTask)
 			{
 				int areasumm = 0;
@@ -84,7 +85,9 @@ namespace drawpolys
 			}
 			else
 			{
-				List<List<Point>> allpoints = polys.Select(zxc => new List<Point>(zxc.allPoints())).ToList();																			 
+				List<List<Point>> allpoints = polys.Select(zxc => new List<Point>(zxc.allPoints())).ToList();//new List<List<Point>>(polys.Count);
+																											 //for (int i = 0; i < polys.Count; i++)
+																											 //	allpoints.Add(polys[i].allPoints());
 				List<Color> colors = new List<Color>();
 				for (int i = 0; i < allpoints.Count; i++)
 					colors.Add(new Color(new Rgba32((byte)math.rnd.Next(256), (byte)math.rnd.Next(256), (byte)math.rnd.Next(256))));

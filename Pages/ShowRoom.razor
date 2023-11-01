@@ -155,29 +155,17 @@
 			{
 				shape3d result = new shape3d();
 				List<shapepiece> shapes = new List<shapepiece>() { s1, s2, s3 };
-				List<poly3d> plus = new List<poly3d>();
-				List<poly3d> minus = new List<poly3d>();
 				for (int i = 0; i < shapes.Count; i++)
 				{
 					if (shapes[i].add ?? false)
-						//result = result.add(shapes[i].shape);
-						plus.AddRange(shapes[i].shape.allpolys);
+						result = result.add(shapes[i].shape);
 				}
 				for (int i = 0; i < shapes.Count; i++)
 				{
 					if (!shapes[i].add ?? false)
-						//result = result.cut(shapes[i].shape);
-						minus.AddRange(shapes[i].shape.allpolys);
+						result = result.cut(shapes[i].shape);
 				}
-				//result = new shape3d(plus).result().cut(minus);
-				result = new shape3d(plus).cut(minus).result();
-				//result = new shape3d(plus).cut(minus);
-				/*
-				int prev = (int)mathgem.calculationSettings.simplificationMethod;
-				mathgem.calculationSettings.simplificationMethod = 1;
 				result = result.result();
-				mathgem.calculationSettings.simplificationMethod = prev;
-				*/
 				return drawer.drawImg(result);
 			}
 			//return new Image<Rgba32>(1, 1);
@@ -245,7 +233,7 @@
 		public string str()
 		{
 			if (isValid)
-				return $"\nadd: {(add == null ? "none" : add.ToString())}\nA: {A.str()}\nB: {B.str()}\nC: {C.str()}\nD: {D.str()}\npolygons: {shape.allpolys.Count}";
+				return $"\nadd: {(add == null ? "none" : add.ToString())}\nA: {A.str()}\nB: {B.str()}\nC: {C.str()}\nD: {D.str()}\npolygons: {shape.polys().Count}";
 			return "Invalid";
 		}
 		private void toNull()

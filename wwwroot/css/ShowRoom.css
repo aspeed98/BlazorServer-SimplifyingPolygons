@@ -219,6 +219,10 @@
     background: #79C56950;
 }
 
+.image {
+    position: absolute;
+}
+
 .gif1 {
     border: 2px solid #8E58C1;
     position: absolute;

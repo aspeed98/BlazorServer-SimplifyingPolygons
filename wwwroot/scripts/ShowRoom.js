@@ -160,18 +160,28 @@ function draw(img, sw, sh) {
 	image.style.height = `${sh}px`;
 	image.style.opacity = "0";
 	image.src = img;
-	if (sw > sh) {
-		let scale = 600 / sw;
-		sw *= scale;
-		sh *= scale;
-	}
+	let sx, sy;
+	if (sw > 600 || sh > 600)
+		if (sw > sh) {
+			let scale = 600 / sw;
+			sw *= scale;
+			sh *= scale;
+			sx = 0; sy = (600 - sh) / 2;
+		}
+		else {
+			let scale = 600 / sh;
+			sw *= scale;
+			sh *= scale;
+			sy = 0; sx = (600 - sw) / 2;
+		}
 	else {
-		let scale = 600 / sh;
-		sw *= scale;
-		sh *= scale;
+		sx = (600 - sw) / 2;
+		sy = (600 - sh) / 2;
 	}
 	image.style.width = `${sw}px`;
 	image.style.height = `${sh}px`;
+	image.style.left = `${sx}px`;
+	image.style.top = `${sy}px`;
 	image.style.opacity = "1";
 }
 function addhistory(img, sw, sh) {

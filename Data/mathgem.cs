@@ -12,9 +12,11 @@
 			if (x == y) return true;
 			double diff = Math.Abs(x - y);
 			//double tolerance = 0.001;
-			double tolerance = 0.000001;
-			double mindiff = 0.001;
+			//double mindiff = 0.001;
+			//double tolerance = 0.000001;
 			//double mindiff = 0.000001;
+			double tolerance = 0.00005;
+			double mindiff = 0.00005;
 			return diff <= mindiff || (Math.Abs(diff / x) <= tolerance && Math.Abs(diff / y) <= tolerance);
 		}
 		public static bool same(double x, double y, double mindiff)
@@ -417,8 +419,7 @@
 			if (A.isNull && B.isNull)
 				return true;
 			if (!A.isNull && !B.isNull)
-				//if (math.same(A.x, B.x) && math.same(A.y, B.y) && math.same(A.z, B.z))
-				if (math.same(A.x, B.x, 0.001) && math.same(A.y, B.y, 0.001) && math.same(A.z, B.z, 0.001))
+				if (math.same(A.x, B.x) && math.same(A.y, B.y) && math.same(A.z, B.z))
 					return true;
 			return false;
 		}
@@ -1288,12 +1289,9 @@
 			double maxZ = Math.Max(Math.Max(A.z, B.z), C.z);
 			double minZ = Math.Min(Math.Min(A.z, B.z), C.z);
 			this.rect3d = new rect3d(minX, minY, minZ, maxX, maxY, maxZ);
-			int left = (int)Math.Ceiling(minX); int right = (int)Math.Floor(maxX); int width = right - left;
-			int top = (int)Math.Ceiling(minY); int bottom = (int)Math.Floor(maxY); int height = bottom - top;
-			if (width < 0 || height < 0)
-				this.rect = new Rectangle();
-			else
-				this.rect = new Rectangle(left, top, width, height);
+			int left = (int)Math.Ceiling(minX); int right = (int)Math.Floor(maxX); int width = Math.Max(right - left, 0);
+			int top = (int)Math.Ceiling(minY); int bottom = (int)Math.Floor(maxY); int height = Math.Max(bottom - top, 0);
+			this.rect = new Rectangle(left, top, width, height);
 		}
 		private void setLines()
 		{
@@ -2538,14 +2536,15 @@
 										if (k != j)
 											for (int w = 0; w < 3; w++)
 												if (w != v)
-													//if (all[i][k].continues(all[u][w], true))
-													//if (all[i][k].shareEdgePoint(all[u][w], true) && all[i][k].sameStraight(all[u][w], true) && all[i][k] != all[u][w])
-													//if (all[i][k].sameStraight(all[u][w], true) && all[i][k] != all[u][w])
 													if (all[i][k].sameStraight(all[u][w], true))
-														if (combine(i, j, k, u, v, w))
-															goto Start;
+													{
+														combine(i, j, k, u, v, w);
+														goto Start;
+													}
+
 			return polys.Where(poly => !poly.isNull).ToList();
-			bool combine(int i, int j, int k, int u, int v, int w)
+
+			void combine(int i, int j, int k, int u, int v, int w)
 			{
 				List<int> ids1 = new List<int>() { 0, 1, 2 };
 				ids1.Remove(j); ids1.Remove(k);
@@ -2583,11 +2582,15 @@
 						all[i] = modified.lines();
 						polys.RemoveAt(u);
 						all.RemoveAt(u);
-						return true;
+						return;
 					}
 				}
-				Console.WriteLine($"SimplifyRandom method combine caught strange result! points: {ps.Count}");
-				return false;
+				else
+					Console.WriteLine($"SimplifyRandom method combine caught strange result! points: {ps.Count}");
+				polys.RemoveAt(u);
+				all.RemoveAt(u);
+				polys.RemoveAt(i);
+				all.RemoveAt(i);
 			}
 		}
 		public poly3d cloneNoZ()
@@ -2831,7 +2834,7 @@
 
 			List<poly3d> result = new List<poly3d>();
 			for (int i = 0; i < plus.Count; i++)
-				result.AddRange(plus[i].cut(minus.ToList()));
+				result.AddRange(plus[i].cut(new List<poly3d>(minus)));
 
 			this.pluspolys = result;
 			this.minuspolys = new List<poly3d>();
@@ -2873,23 +2876,24 @@
 		}
 		private void setBounds()
 		{
+			if (!this.calculated)
+				calculate();
 			if (this.isNull || this.pluspolys.Count == 0)
 			{ this.bounds = new Rectangle(); return; }
-			int left = this.pluspolys[0].rect.Left;
-			int right = this.pluspolys[0].rect.Right;
-			int top = this.pluspolys[0].rect.Top;
-			int bottom = this.pluspolys[0].rect.Bottom;
+			double minX = this.pluspolys[0].rect.Left;
+			double maxX = this.pluspolys[0].rect.Right;
+			double minY = this.pluspolys[0].rect.Top;
+			double maxY = this.pluspolys[0].rect.Bottom;
 			for (int i = 1; i < this.pluspolys.Count; i++)
 			{
-				left = Math.Min(left, this.pluspolys[i].rect.Left);
-				right = Math.Max(right, this.pluspolys[i].rect.Right);
-				top = Math.Min(top, this.pluspolys[i].rect.Top);
-				bottom = Math.Max(bottom, this.pluspolys[i].rect.Bottom);
+				minX = Math.Min(minX, this.pluspolys[i].rect3d.left);
+				maxX = Math.Max(maxX, this.pluspolys[i].rect3d.right);
+				minY = Math.Min(minY, this.pluspolys[i].rect3d.top);
+				maxY = Math.Max(maxY, this.pluspolys[i].rect3d.bottom);
 			}
-			if (left < right && top < bottom)
-				this.bounds = new Rectangle(left, top, right - left, bottom - top);
-			else
-				this.bounds = new Rectangle();
+			int left = (int)Math.Ceiling(minX); int right = (int)Math.Floor(maxX); int width = Math.Max(right - left, 0);
+			int top = (int)Math.Ceiling(minY); int bottom = (int)Math.Floor(maxY); int height = Math.Max(bottom - top, 0);
+			this.bounds = new Rectangle(left, top, width, height);
 		}
 		public Rectangle rect()
 		{

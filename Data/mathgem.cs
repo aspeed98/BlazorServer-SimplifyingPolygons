@@ -11,12 +11,8 @@
 		{
 			if (x == y) return true;
 			double diff = Math.Abs(x - y);
-			//double tolerance = 0.001;
-			//double mindiff = 0.001;
-			//double tolerance = 0.000001;
-			//double mindiff = 0.000001;
-			double tolerance = 0.00005;
-			double mindiff = 0.00005;
+			double tolerance = 0.000005;
+			double mindiff = 0.000005;
 			return diff <= mindiff || (Math.Abs(diff / x) <= tolerance && Math.Abs(diff / y) <= tolerance);
 		}
 		public static bool same(double x, double y, double mindiff)
@@ -1458,10 +1454,8 @@
 				return false;
 			if (!this.pointOnSurface(p))
 				return false;
-			//double mink = Math.Min(1.0 / Math.Sqrt(128 * this.area), 0.01), maxk = 1.0 - mink, mins = mink * 2.0, maxs = 1.0 - mins;
-			double mink = 0.001 / Math.Sqrt(2 * this.area), maxk = 1.0 - mink, mins = mink * 2.0, maxs = 1.0 - mins;
-			//double mink = 1.0 / Math.Sqrt(8 * this.area), maxk = 1.0 - mink, mins = mink * 2.0, maxs = 1.0 - mins;
-			//double mink = 0.001, maxk = 1.0 - mink, mins = mink * 2.0, maxs = 1.0 - mins;
+
+			double mink = 0.001 / Math.Sqrt(this.area), maxk = 1.0 - mink, mins = mink * 2.0, maxs = 1.0 - mins;
 			for (int i = 0; i < 3; i++)
 			{
 				point3d v1 = new point3d(), v2 = new point3d(), pv = new point3d();
@@ -1677,7 +1671,8 @@
 								point3d center = allpolys[i][j].center();
 								double thisZ = polys[i].surfacePoint(center).z;
 								double polyZ = polys[u].surfacePoint(center).z;
-								if (thisZ > polyZ || math.same(thisZ, polyZ))
+								if (thisZ > polyZ || math.same(thisZ, polyZ, 0.001))
+								//if (thisZ > polyZ || math.same(thisZ, polyZ))
 								{ allpolys[u].RemoveAt(v); v--; }
 							}
 					}
@@ -1797,7 +1792,8 @@
 						point3d center = allpolys[i].center();
 						double thisZ = this.surfacePoint(center).z;
 						double polyZ = cutters[j].surfacePoint(center).z;
-						if (polyZ > thisZ || math.same(polyZ, thisZ))
+						if (polyZ > thisZ || math.same(polyZ, thisZ, 0.001))
+						//if (polyZ > thisZ || math.same(polyZ, thisZ))
 						{ allpolys.RemoveAt(i); i--; break; }
 					}
 
